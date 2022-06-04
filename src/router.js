@@ -8,9 +8,24 @@ const routes = [
         component: App,
         children: [
             {
-                path: '',
-                name: 'dashboard',
-                component: () => import('./components/Dashboard.vue')
+                path: '/listarecetas',
+                name: 'ListaRecetas',
+                component: () => import('./components/ListaRecetas.vue')
+            },
+            {
+                path: '/listaingredientes',
+                name: 'ListaIngredientes',
+                component: () => import('./components/ListaIngredientes.vue')
+            },
+            {
+                path: '/nuevareceta',
+                name: 'NuevaReceta',
+                component: () => import('./components/NuevaReceta.vue')
+            },
+            {
+                path: '/nuevoingrediente',
+                name: 'NuevoIngrediente',
+                component: () => import('./components/NuevoIngrediente.vue')
             },
             {
                 path: '/formlayout',
