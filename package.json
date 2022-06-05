@@ -1,9 +1,9 @@
 {
-	"name": "sakai-vue",
+	"name": "napi-2-front",
 	"version": "3.4.2-SNAPSHOT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/primefaces/sakai-vue.git"
+		"url": "https://github.com/EmmanueleD/NAPI_2_Front"
 	},
 	"license": "MIT",
 	"scripts": {
