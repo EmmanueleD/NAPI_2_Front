@@ -8,8 +8,6 @@
           :layout="layout"
           :paginator="true"
           :rows="9"
-          :sortOrder="sortOrder"
-          :sortField="sortField"
         >
           <template #header>
             <div
@@ -124,7 +122,7 @@
           </template>
 
           <template #grid="slotProps">
-            <div class="col-12 md:col-4">
+            <div class="col-12 md:col-6 xl:col-4">
               <div class="card m-3 border-1 surface-border">
                 <div class="flex align-items-center justify-content-between">
                   <div class="flex align-items-center">
@@ -140,9 +138,18 @@
                       slotProps.data.category
                     }}</span> -->
                   </div>
-                  <span class="text-2xl font-semibold"
-                    >${{ slotProps.data.price }}</span
-                  >
+                  <span class="text-2xl font-bold mt-2 mb-4">
+                    $
+                    {{
+                      slotProps.data
+                        .reduce(
+                          (r, d) =>
+                            r + (d.ingredient.price / d.ingredient.qty) * d.qty,
+                          0
+                        )
+                        .toFixed(2)
+                    }}
+                  </span>
                 </div>
                 <div class="text-center">
                   <!-- <img
@@ -151,14 +158,27 @@
                     class="w-9 shadow-2 my-3 mx-0"
                   /> -->
                   <div class="text-2xl font-bold">
-                    {{ slotProps.data.name }}
+                    {{ slotProps.data[0].recipe_name }}
                   </div>
                   <div class="my-3">
                     <h5>Lista de ingredientes</h5>
-                    <DataTable :value="ingredientes">
-                      <Column field="ingrediente" header="Ingrediente"></Column>
-                      <Column field="cantidad" header="Cantidad"></Column>
-                      <Column field="precio" header="Precio"></Column>
+                    <DataTable :value="slotProps.data" responsiveLayout="stack">
+                      <Column
+                        field="ingredient.name"
+                        header="Ingrediente"
+                      ></Column>
+                      <Column field="qty" header="Cantidad"></Column>
+                      <Column field="price" header="Precio">
+                        <template #body="slotProps">
+                          {{
+                            formatCurrency(
+                              (slotProps.data.ingredient.price /
+                                slotProps.data.ingredient.qty) *
+                                slotProps.data.qty
+                            )
+                          }}
+                        </template>
+                      </Column>
                     </DataTable>
                     <!-- {{ slotProps.data.description }} -->
                   </div>
@@ -173,6 +193,7 @@
                     icon="pi pi-fw pi-trash"
                     label="Delete "
                     class="mb-2 p-button-danger"
+                    @click="deleteRecipe(slotProps.data[0].id_recipe)"
                   ></Button>
                   <Button
                     @click="editRecipe(slotProps.data)"
@@ -192,10 +213,12 @@
       :style="{ width: '70vw' }"
       :header="item.name"
       :modal="true"
+      position="right"
       class="p-fluid"
     >
       <h5>Nobre Receta</h5>
-      <InputText :value="item.name"></InputText>
+      {{ item }}
+      <InputText :value="item[0].recipe_name"></InputText>
 
       <h5>Ingredientes</h5>
 
@@ -222,92 +245,50 @@
 </template>
 
 <script>
-import ProductService from "../service/ProductService";
+import RecipesService from "../service/RecipesService";
 
 export default {
   data() {
     return {
       item: {},
       editDialog: false,
-      ingredientes: [
-        {
-          ingrediente: "Pan",
-          cantidad: 20,
-          precio: 33,
-        },
-        {
-          ingrediente: "Manteca",
-          cantidad: 2,
-          precio: 3,
-        },
-        {
-          ingrediente: "Dulce de leche",
-          cantidad: 203,
-          precio: 333,
-        },
-      ],
+
       inputFilter: "",
-      picklistValue: [
-        [
-          { name: "San Francisco", code: "SF" },
-          { name: "London", code: "LDN" },
-          { name: "Paris", code: "PRS" },
-          { name: "Istanbul", code: "IST" },
-          { name: "Berlin", code: "BRL" },
-          { name: "Barcelona", code: "BRC" },
-          { name: "Rome", code: "RM" },
-        ],
-        [],
-      ],
-      orderlistValue: [
-        { name: "San Francisco", code: "SF" },
-        { name: "London", code: "LDN" },
-        { name: "Paris", code: "PRS" },
-        { name: "Istanbul", code: "IST" },
-        { name: "Berlin", code: "BRL" },
-        { name: "Barcelona", code: "BRC" },
-        { name: "Rome", code: "RM" },
-      ],
+
       dataviewValue: [],
       layout: "grid",
-      sortKey: null,
-      sortOrder: null,
-      sortField: null,
-      sortOptions: [
-        { label: "Price High to Low", value: "!price" },
-        { label: "Price Low to High", value: "price" },
-      ],
     };
   },
-  productService: null,
+  recipesService: null,
   created() {
-    this.productService = new ProductService();
-    this.productService
-      .getProducts()
-      .then((data) => (this.dataviewValue = data));
+    this.recipesService = new RecipesService();
   },
-  mounted() {},
+  mounted() {
+    this.buildRecipeList();
+  },
   methods: {
+    buildRecipeList() {
+      this.recipesService.getRecipesWIngredients().then((data) => {
+        console.log(data);
+        for (const key in data) {
+          this.dataviewValue.push(data[key]);
+        }
+      });
+    },
+    formatCurrency(value) {
+      if (value)
+        return value.toLocaleString("en-US", {
+          style: "currency",
+          currency: "USD",
+        });
+      return;
+    },
     editRecipe(item) {
       this.item = { ...item };
       this.editDialog = true;
     },
     hideDialog() {
       this.editDialog = false;
-    },
-    onSortChange(event) {
-      const value = event.value.value;
-      const sortValue = event.value;
-
-      if (value.indexOf("!") === 0) {
-        this.sortOrder = -1;
-        this.sortField = value.substring(1, value.length);
-        this.sortKey = sortValue;
-      } else {
-        this.sortOrder = 1;
-        this.sortField = value;
-        this.sortKey = sortValue;
-      }
     },
   },
   computed: {
@@ -316,13 +297,16 @@ export default {
 
       this.dataviewValue.forEach((element) => {
         if (
-          element.name.toLowerCase().includes(this.inputFilter.toLowerCase()) ||
-          element.category
-            .toLowerCase()
-            .includes(this.inputFilter.toLowerCase()) ||
-          element.inventoryStatus
+          element[0].recipe_name
             .toLowerCase()
             .includes(this.inputFilter.toLowerCase())
+          // ||
+          // element.category
+          //   .toLowerCase()
+          //   .includes(this.inputFilter.toLowerCase()) ||
+          // element.inventoryStatus
+          //   .toLowerCase()
+          //   .includes(this.inputFilter.toLowerCase())
         ) {
           array.push(element);
         }
