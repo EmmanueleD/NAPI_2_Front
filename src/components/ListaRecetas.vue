@@ -269,7 +269,6 @@ export default {
   methods: {
     buildRecipeList() {
       this.recipesService.getRecipesWIngredients().then((data) => {
-        console.log(data);
         for (const key in data) {
           this.dataviewValue.push(data[key]);
         }
