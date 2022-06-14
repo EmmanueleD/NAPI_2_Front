@@ -659,6 +659,8 @@ export default {
     },
     editRecipe(item) {
       this.item = { ...item };
+      console.log(this.item);
+      this.newName = item.name_recipe;
       this.editDialog = true;
       this.ingredientsService.getAllIngredients().then((res) => {
         this.ingredientsList = res;
