@@ -15,7 +15,7 @@
             />
           </div>
 
-          <h5>Ingredientes</h5>
+          <!-- <h5>Ingredientes</h5>
 
           <div class="p-inputgroup">
             <AutoComplete
@@ -80,13 +80,18 @@
                   />
                 </div>
               </div>
-
-              <!-- <label for="qty"> {{ ingredient.name }} </label>
-              <InputText type="number" id="qty" /> -->
             </div>
-          </div>
+          </div> -->
         </div>
         <Button
+          icon="pi pi-plus"
+          label="Crear receta"
+          style="margin-left: 50%"
+          class="p-button-rounded p-button-success mt-3"
+          :disabled="newRecipe.name.length <= 0"
+          @click="postNewRecipe"
+        />
+        <!-- <Button
           icon="pi pi-plus"
           label="Crear receta"
           style="margin-left: 50%"
@@ -95,7 +100,7 @@
             newRecipe.name.length <= 0 || newRecipe.ingredients.length == 0
           "
           @click="postNewRecipe"
-        />
+        /> -->
       </div>
     </div>
   </div>
