@@ -49,7 +49,9 @@
                       align-self-center
                       md:align-self-end
                     "
-                    >${{ slotProps.data.price }}</span
+                  >
+                    $
+                    {{ slotProps.data.price.toFixed(2) }}</span
                   >
                 </div>
                 <!-- <img
@@ -59,14 +61,14 @@
                 /> -->
                 <div class="flex-1 text-center md:text-left">
                   <div class="font-bold text-2xl">
-                    {{ slotProps.data.name }}
+                    {{ slotProps.data.name_recipe }}
                   </div>
                   <div>
                     <Chip
                       class="mr-2 mt-3"
-                      v-for="item in ingredientes"
-                      :key="item.ingrediente"
-                      :label="item.ingrediente"
+                      v-for="item in slotProps.data.ingredients"
+                      :key="item.ID_ingredient"
+                      :label="item.NAME_ingredient"
                     ></Chip>
                   </div>
                   <!-- <div class="mb-3">{{ slotProps.data.description }}</div> -->
@@ -122,7 +124,7 @@
           </template>
 
           <template #grid="slotProps">
-            <div class="col-12 md:col-6 xl:col-4">
+            <div class="col-12 md:col-6 xl:col-3">
               <div class="card m-3 border-1 surface-border">
                 <div class="flex align-items-center justify-content-between">
                   <div class="flex align-items-center">
@@ -140,15 +142,7 @@
                   </div>
                   <span class="text-2xl font-bold mt-2 mb-4">
                     $
-                    {{
-                      slotProps.data
-                        .reduce(
-                          (r, d) =>
-                            r + (d.ingredient.price / d.ingredient.qty) * d.qty,
-                          0
-                        )
-                        .toFixed(2)
-                    }}
+                    {{ slotProps.data.price.toFixed(2) }}
                   </span>
                 </div>
                 <div class="text-center">
@@ -158,28 +152,38 @@
                     class="w-9 shadow-2 my-3 mx-0"
                   /> -->
                   <div class="text-2xl font-bold">
-                    {{ slotProps.data[0].recipe_name }}
+                    {{ slotProps.data.name_recipe }}
                   </div>
                   <div class="my-3">
-                    <h5>Lista de ingredientes</h5>
-                    <DataTable :value="slotProps.data" responsiveLayout="stack">
-                      <Column
-                        field="ingredient.name"
-                        header="Ingrediente"
-                      ></Column>
-                      <Column field="qty" header="Cantidad"></Column>
-                      <Column field="price" header="Precio">
-                        <template #body="slotProps">
-                          {{
-                            formatCurrency(
-                              (slotProps.data.ingredient.price /
-                                slotProps.data.ingredient.qty) *
-                                slotProps.data.qty
-                            )
-                          }}
+                    <Accordion>
+                      <AccordionTab>
+                        <template #header>
+                          <i class="pi pi-calendar mr-3"></i>
+                          <span>Ingredientes</span>
                         </template>
-                      </Column>
-                    </DataTable>
+                        <DataTable
+                          :value="slotProps.data.ingredients"
+                          responsiveLayout="stack"
+                        >
+                          <Column field="ingredientName" header="Ingrediente">
+                            <template #body="slotProps">
+                              {{ slotProps.data.NAME_ingredient }}
+                            </template>
+                          </Column>
+                          <Column field="qty" header="Cantidad">
+                            <template #body="slotProps">
+                              {{ slotProps.data.QTY_ingredient }}
+                            </template></Column
+                          >
+                          <Column field="price" header="Precio">
+                            <template #body="slotProps">
+                              {{ slotProps.data.price_ingredient.toFixed(2) }}
+                            </template>
+                          </Column>
+                        </DataTable>
+                      </AccordionTab>
+                    </Accordion>
+
                     <!-- {{ slotProps.data.description }} -->
                   </div>
                   <!-- <Rating
@@ -210,21 +214,62 @@
     </div>
     <Dialog
       v-model:visible="editDialog"
-      :style="{ width: '70vw' }"
       :header="item.name"
       :modal="true"
-      position="right"
-      class="p-fluid"
+      position="bottom"
+      class="p-fluid mx-6 my-6"
     >
-      <h5>Nobre Receta</h5>
-      {{ item }}
-      <InputText :value="item[0].recipe_name"></InputText>
+      <template #header><h2>Edit Recipe</h2></template>
+      <div class="px-3 pt-4">
+        <h5>Nobre Receta</h5>
+        <InputText :placeholder="item.name_recipe"></InputText>
 
-      <h5>Ingredientes</h5>
-
-      AGGIUNGI Ingrediente ELIMINA Ingrediente <br />
-      MODIFICA QUANTITA Ingrediente <br />
-      MODIFICA NOME RICETTA
+        <h5>Ingredientes</h5>
+        <div class="my-3">
+          <h6>Agrega un ingrediente</h6>
+          <div class="grid">
+            <div class="col-8">
+              <AutoComplete
+                v-model="newIngredient"
+                :suggestions="filteredIngredients"
+                @complete="newIngredientSelected($event)"
+                field="name"
+              />
+            </div>
+            <div class="col-4">
+              <!-- <Button
+                icon="pi pi-plus"
+                class="p-button-rounded p-button-success"
+                @click="addIngredient"
+              /> -->
+            </div>
+          </div>
+        </div>
+        <div
+          v-for="ingredient in item.ingredients"
+          :key="ingredient.ID_ingredient"
+          class="grid px-3"
+        >
+          <div class="col-4 flex justify-content-start align-items-center">
+            {{ ingredient.NAME_ingredient }}
+          </div>
+          <div class="col-4 flex justify-content-center align-items-center">
+            <InputNumber
+              v-model="ingredient.QTY_ingredient"
+              :placeholder="ingredient.QTY_ingredient"
+            ></InputNumber>
+          </div>
+          <div class="col-4 flex justify-content-center align-items-center">
+            <div class="flex justify-content-end">
+              <Button
+                icon="pi pi-trash"
+                class="p-button-rounded p-button-danger"
+                @click="confirmDeleteProduct(ingredient)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
 
       <template #footer>
         <Button
@@ -241,16 +286,55 @@
         />
       </template>
     </Dialog>
+    <Dialog
+      v-model:visible="deleteIngredientDialog"
+      :style="{ width: '450px' }"
+      header="Confirm"
+      :modal="true"
+      position="center"
+    >
+      <div class="confirmation-content">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+        <span v-if="ingredient"
+          >Quieres eliminar <b>{{ ingredient.NAME_ingredient }}</b
+          >?</span
+        >
+      </div>
+      <template #footer>
+        <Button
+          label="No"
+          icon="pi pi-times"
+          class="p-button-text"
+          @click="deleteIngredientDialog = false"
+        />
+        <Button
+          label="Yes"
+          icon="pi pi-check"
+          class="p-button-text"
+          @click="deleteIngredient(item.id_recipe, ingredient.ID_ingredient)"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script>
+import IngredientsService from "../service/IngredientsService";
 import RecipesService from "../service/RecipesService";
 
 export default {
   data() {
     return {
-      item: {},
+      deleteIngredientDialog: false,
+
+      newIngredient: "",
+      ingredientsList: [],
+      filteredIngredients: [],
+
+      ingredient: {},
+
+      item: [],
+      itemEdited: [],
       editDialog: false,
 
       inputFilter: "",
@@ -260,19 +344,105 @@ export default {
     };
   },
   recipesService: null,
+  ingredientsService: null,
   created() {
     this.recipesService = new RecipesService();
+    this.ingredientsService = new IngredientsService();
   },
   mounted() {
     this.buildRecipeList();
   },
   methods: {
+    deleteIngredient(id_recipe, ID_ingredient) {
+      try {
+        this.recipesService
+          .deleteIngredient(id_recipe, ID_ingredient)
+          .then((res) => {
+            console.log(res);
+            this.recipesService.getRecipeById(id_recipe).then((res) => {
+              this.item.ingredients.splice(0);
+              this.item.ingredients = res.ingredients;
+            });
+            this.deleteIngredientDialog = false;
+            this.ingredient = {};
+            this.$toast.add({
+              severity: "success",
+              summary: "Successful",
+              detail: "Ingrediente eliminado",
+              life: 3000,
+            });
+          });
+      } catch {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Error en la eliminación del ingrediente",
+          life: 3000,
+        });
+      }
+    },
+    confirmDeleteProduct(ingredient) {
+      this.ingredient = ingredient;
+      this.deleteIngredientDialog = true;
+    },
+    newIngredientSelected(event) {
+      console.log(event);
+      setTimeout(() => {
+        if (!event.query.trim().length) {
+          this.filteredIngredients = [...this.ingredientsList];
+        } else {
+          this.filteredIngredients = this.ingredientsList.filter(
+            (ingredient) => {
+              return ingredient.name
+                .toLowerCase()
+                .startsWith(event.query.toLowerCase());
+            }
+          );
+        }
+      }, 250);
+    },
+    saveProduct() {},
     buildRecipeList() {
       this.recipesService.getRecipesWIngredients().then((data) => {
-        for (const key in data) {
-          this.dataviewValue.push(data[key]);
+        const recipes = {};
+
+        // Create an object in {recipes} for each recipe
+        data.forEach((ingredient) => {
+          if (Object.keys(recipes).length === 0) {
+            recipes[ingredient.ID_recipe] = {
+              id_recipe: ingredient.ID_recipe,
+              name_recipe: ingredient.NAME_recipe,
+              ingredients: [],
+            };
+            recipes[ingredient.ID_recipe].ingredients.push(ingredient);
+          } else if (
+            Object.keys(recipes).includes(ingredient.ID_recipe.toString())
+          ) {
+            recipes[ingredient.ID_recipe].ingredients.push(ingredient);
+          } else {
+            recipes[ingredient.ID_recipe] = {
+              id_recipe: ingredient.ID_recipe,
+              name_recipe: ingredient.NAME_recipe,
+              ingredients: [],
+            };
+            recipes[ingredient.ID_recipe].ingredients.push(ingredient);
+          }
+        });
+
+        // populate array [ dataviewValue ] with recipes objects
+        for (let key in recipes) {
+          this.dataviewValue.push(recipes[key]);
+          // Calculate price for each recipe
+          this.dataviewValue.forEach((recipe) => {
+            recipe.price = 0;
+            recipe.ingredients.forEach((ingredient) => {
+              recipe.price += ingredient.price_ingredient;
+            });
+          });
         }
       });
+
+      console.log("this.dataviewValue", this.dataviewValue);
     },
     formatCurrency(value) {
       if (value)
@@ -285,6 +455,9 @@ export default {
     editRecipe(item) {
       this.item = { ...item };
       this.editDialog = true;
+      this.ingredientsService.getAllIngredients().then((res) => {
+        this.ingredientsList = res;
+      });
     },
     hideDialog() {
       this.editDialog = false;
@@ -296,7 +469,7 @@ export default {
 
       this.dataviewValue.forEach((element) => {
         if (
-          element[0].recipe_name
+          element.name_recipe
             .toLowerCase()
             .includes(this.inputFilter.toLowerCase())
           // ||

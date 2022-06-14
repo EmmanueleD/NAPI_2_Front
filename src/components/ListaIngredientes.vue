@@ -104,7 +104,7 @@
       :style="{ width: '50vw' }"
       header="Product Details"
       :modal="true"
-      class="p-fluid"
+      class="p-fluid mx-6 my-6"
       position="right"
     >
       <div class="field">

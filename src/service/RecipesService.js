@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASIC_URL = 'https://napi2.herokuapp.com/api/recipes_'
+const BASIC_URL = 'https://napi2-production.up.railway.app/api/recipes_'
 
 export default class IngredientsService {
 
