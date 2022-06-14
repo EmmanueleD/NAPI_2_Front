@@ -56,13 +56,20 @@ export default {
     this.ingredientsService = new IngredientsService();
   },
   methods: {
+    resetData() {
+      this.newIngredient = {
+        name: "",
+        price: 0,
+        qty: 0,
+      };
+    },
     addIngredient() {
       try {
         this.ingredientsService
           .newIngredient(this.newIngredient)
           .then((res) => {
             console.log(res);
-
+            this.resetData();
             this.$toast.add({
               severity: "success",
               summary: "Successful",
@@ -71,6 +78,7 @@ export default {
             });
           });
       } catch {
+        this.resetData();
         this.$toast.add({
           severity: "error",
           summary: "Error",

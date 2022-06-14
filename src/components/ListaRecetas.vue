@@ -34,24 +34,14 @@
                 class="
                   flex flex-column
                   md:flex-row
-                  align-items-center
+                  align-items-start
                   p-3
                   w-full
                 "
               >
-                <div>
-                  <span
-                    class="
-                      text-2xl
-                      font-semibold
-                      mb-2
-                      mx-6
-                      align-self-center
-                      md:align-self-end
-                    "
-                  >
-                    $
-                    {{ slotProps.data.price.toFixed(2) }}</span
+                <div style="min-width: 15%">
+                  <span class="text-2xl font-semibold mb-2 align-self-start">
+                    $ {{ slotProps.data.price.toFixed(2) }}</span
                   >
                 </div>
                 <!-- <img
@@ -59,7 +49,7 @@
                   :alt="slotProps.data.name"
                   class="my-4 md:my-0 w-9 md:w-10rem shadow-2 mr-5"
                 /> -->
-                <div class="flex-1 text-center md:text-left">
+                <div class="flex-1 text-left">
                   <div class="font-bold text-2xl">
                     {{ slotProps.data.name_recipe }}
                   </div>
@@ -100,12 +90,13 @@
                   "
                 >
                   <Button
+                    @click="confirmDeleteRecipe(slotProps.data)"
                     icon="pi pi-fw pi-trash"
                     label="Delete "
                     class="mb-2 p-button-danger"
                   ></Button>
                   <Button
-                    @click="editRecipe"
+                    @click="editRecipe(slotProps.data)"
                     icon="pi pi-fw pi-pencil"
                     label="Edit "
                     class="mb-2 p-button-info"
@@ -124,7 +115,7 @@
           </template>
 
           <template #grid="slotProps">
-            <div class="col-12 md:col-6 xl:col-3">
+            <div class="col-12 md:col-6 xl:col-4">
               <div class="card m-3 border-1 surface-border">
                 <div class="flex align-items-center justify-content-between">
                   <div class="flex align-items-center">
@@ -197,7 +188,7 @@
                     icon="pi pi-fw pi-trash"
                     label="Delete "
                     class="mb-2 p-button-danger"
-                    @click="deleteRecipe(slotProps.data[0].id_recipe)"
+                    @click="confirmDeleteRecipe(slotProps.data)"
                   ></Button>
                   <Button
                     @click="editRecipe(slotProps.data)"
@@ -222,7 +213,21 @@
       <template #header><h2>Edit Recipe</h2></template>
       <div class="px-3 pt-4">
         <h5>Nobre Receta</h5>
-        <InputText :placeholder="item.name_recipe"></InputText>
+        <div class="grid">
+          <div class="mr-3">
+            <InputText
+              :placeholder="item.name_recipe"
+              v-model="newName"
+            ></InputText>
+          </div>
+          <!-- <div>
+            <Button
+              icon="pi pi-check"
+              class="p-button-rounded p-button-info"
+              @click="confirmDeleteProduct(ingredient)"
+            />
+          </div> -->
+        </div>
 
         <h5>Ingredientes</h5>
         <div class="my-3">
@@ -230,9 +235,11 @@
           <div class="grid">
             <div class="col-8">
               <AutoComplete
+                placeholder="Busca un ingrediente..."
                 v-model="newIngredient"
                 :suggestions="filteredIngredients"
                 @complete="newIngredientSelected($event)"
+                @item-select="addIngredient"
                 field="name"
               />
             </div>
@@ -261,6 +268,11 @@
           </div>
           <div class="col-4 flex justify-content-center align-items-center">
             <div class="flex justify-content-end">
+              <!-- <Button
+                icon="pi pi-check"
+                class="p-button-rounded p-button-info mr-3"
+                @click="confirmDeleteProduct(ingredient)"
+              /> -->
               <Button
                 icon="pi pi-trash"
                 class="p-button-rounded p-button-danger"
@@ -282,7 +294,35 @@
           label="Save"
           icon="pi pi-check"
           class="p-button-text"
-          @click="saveProduct"
+          @click="saveRecipe"
+        />
+      </template>
+    </Dialog>
+    <Dialog
+      v-model:visible="deleteRecipeDialog"
+      :style="{ width: '450px' }"
+      header="Confirm"
+      :modal="true"
+      position="center"
+      ><div class="confirmation-content">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+        <span v-if="recipe"
+          >Quieres eliminar <b>{{ recipe.name_recipe }}</b
+          >?</span
+        >
+      </div>
+      <template #footer>
+        <Button
+          label="No"
+          icon="pi pi-times"
+          class="p-button-text"
+          @click="closeRecipeDeleteDialog"
+        />
+        <Button
+          label="Yes"
+          icon="pi pi-check"
+          class="p-button-text"
+          @click="deleteRecipe(recipe.id_recipe)"
         />
       </template>
     </Dialog>
@@ -326,14 +366,18 @@ export default {
   data() {
     return {
       deleteIngredientDialog: false,
+      deleteRecipeDialog: false,
+
+      newName: "",
 
       newIngredient: "",
       ingredientsList: [],
       filteredIngredients: [],
 
       ingredient: {},
+      recipe: {},
 
-      item: [],
+      item: {},
       itemEdited: [],
       editDialog: false,
 
@@ -353,18 +397,177 @@ export default {
     this.buildRecipeList();
   },
   methods: {
+    saveRecipe() {
+      try {
+        //change recipe name
+        try {
+          this.recipesService
+            .editRecipeName({ name: this.newName }, this.item.id_recipe)
+            .then((res) => {
+              console.log("edit recipe name", res);
+              this.$toast.add({
+                severity: "success",
+                summary: "Successful",
+                detail: "Nombre receta cambiado",
+                life: 3000,
+              });
+            });
+        } catch {
+          this.$toast.add({
+            severity: "error",
+            summary: "Error",
+            detail: "Error en el cambio de nombre de la receta",
+            life: 3000,
+          });
+        }
+
+        //change ingredient qty
+
+        this.item.ingredients.forEach((ingredient) => {
+          try {
+            this.recipesService
+              .editIngredientQty(
+                this.item.id_recipe,
+                ingredient.ID_ingredient,
+                ingredient.QTY_ingredient
+              )
+              .then((res) => {
+                console.log("edit ingr. QTY", res);
+                this.$toast.add({
+                  severity: "success",
+                  summary: "Successful",
+                  detail: "Ingrediente modificado",
+                  life: 3000,
+                });
+              });
+          } catch {
+            this.$toast.add({
+              severity: "error",
+              summary: "Error",
+              detail: "Error en modificacion del ingrediente",
+              life: 3000,
+            });
+          }
+        });
+
+        this.resetData();
+        this.editDialog = false;
+      } catch {
+        this.resetData();
+        this.editDialog = false;
+        this.$toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Error 456",
+          life: 3000,
+        });
+      }
+    },
+    addIngredient() {
+      if (this.newIngredient.id) {
+        this.item.ingredients.push({
+          ID_ingredient: this.newIngredient.id,
+          ID_recipe: this.item.id_recipe,
+          QTY_ingredient: this.newIngredient.qty,
+          price_ingredient: this.newIngredient.price,
+          NAME_ingredient: this.newIngredient.name,
+        });
+
+        try {
+          this.recipesService
+            .addIngredient(
+              this.item.id_recipe,
+              this.newIngredient.id,
+              this.newIngredient.qty
+            )
+            .then((res) => {
+              console.log("add NEW  ingr", res);
+              this.$toast.add({
+                severity: "success",
+                summary: "Successful",
+                detail: "Nuevo ingrediente agregado",
+                life: 3000,
+              });
+            });
+        } catch {
+          this.$toast.add({
+            severity: "error",
+            summary: "Error",
+            detail: "Error en el nuevo ingrediente",
+            life: 3000,
+          });
+        }
+      }
+    },
+    resetData() {
+      this.deleteIngredientDialog = false;
+      this.deleteRecipeDialog = false;
+      this.newIngredient = "";
+      this.ingredient = {};
+      this.newName = "";
+      this.recipe = {};
+      this.editDialog = false;
+      this.inputFilter = "";
+    },
+    deleteRecipe(id) {
+      try {
+        this.recipesService.deleteRecipe(id).then((res) => {
+          console.log(res);
+          this.$toast.add({
+            severity: "success",
+            summary: "Successful",
+            detail: "Receta eliminado",
+            life: 3000,
+          });
+          let indexToDelete = this.dataviewValue.findIndex(
+            (c) => c.id_recipe == id
+          );
+          if (indexToDelete > -1) {
+            this.dataviewValue.splice(indexToDelete, 1);
+          }
+
+          this.resetData();
+          this.deleteIngredientDialog = false;
+        });
+      } catch {
+        this.$toast.add({
+          severity: "error",
+          summary: "Error",
+          detail: "Error en la eliminación del ingrediente",
+          life: 3000,
+        });
+        this.resetData();
+        this.deleteIngredientDialog = false;
+      }
+    },
+    closeRecipeDeleteDialog() {
+      this.deleteRecipeDialog = false;
+      this.recipe = {};
+    },
+    confirmDeleteRecipe(recipe) {
+      this.recipe = { ...recipe };
+      this.deleteRecipeDialog = true;
+    },
     deleteIngredient(id_recipe, ID_ingredient) {
       try {
         this.recipesService
           .deleteIngredient(id_recipe, ID_ingredient)
           .then((res) => {
             console.log(res);
-            this.recipesService.getRecipeById(id_recipe).then((res) => {
-              this.item.ingredients.splice(0);
-              this.item.ingredients = res.ingredients;
-            });
+            // this.recipesService.getRecipeById(id_recipe).then((res) => {
+            //   console.log(res);
+            //   //   this.item.ingredients.splice(0);
+            //   //   this.item.ingredients = res.ingredients;
+            // });
+
+            let indexToDelete = this.item.ingredients.findIndex(
+              (c) => c.ID_ingredient == ID_ingredient
+            );
+            if (indexToDelete > -1) {
+              this.item.ingredients.splice(indexToDelete, 1);
+            }
             this.deleteIngredientDialog = false;
-            this.ingredient = {};
+            // this.resetData();
             this.$toast.add({
               severity: "success",
               summary: "Successful",
@@ -373,6 +576,7 @@ export default {
             });
           });
       } catch {
+        this.deleteIngredientDialog = false;
         this.$toast.add({
           severity: "error",
           summary: "Error",
@@ -401,9 +605,10 @@ export default {
         }
       }, 250);
     },
-    saveProduct() {},
+
     buildRecipeList() {
       this.recipesService.getRecipesWIngredients().then((data) => {
+        console.log("RES RES RES ", data);
         const recipes = {};
 
         // Create an object in {recipes} for each recipe
@@ -461,6 +666,7 @@ export default {
     },
     hideDialog() {
       this.editDialog = false;
+      this.resetData();
     },
   },
   computed: {

@@ -5,22 +5,22 @@ const BASIC_URL = 'https://napi2-production.up.railway.app/api/recipes_'
 export default class IngredientsService {
 
   getRecipes(){
-    return axios.get(BASIC_URL + "simple")
+    return axios.get(BASIC_URL + "simple"+"/")
      .then(res => res.data)
   }
 
   getRecipesWIngredients(){
-    return axios.get(BASIC_URL + "complete")
+    return axios.get(BASIC_URL + "complete"+"/")
      .then(res => res.data)
   }
 
   getRecipeById(id){
-    return axios.get(BASIC_URL + "/" +id)
+    return axios.get(BASIC_URL + "/" +id+"/")
      .then(res => res.data)
   }
 
   createRecipe(obj){
-    return axios.post(BASIC_URL, obj)
+    return axios.post(BASIC_URL+"/", obj)
      .then(res => res.data)
   }
 
@@ -44,7 +44,7 @@ export default class IngredientsService {
   }
 
   deleteRecipe(id){
-    return axios.delete(BASIC_URL + "/" +id)
+    return axios.delete(BASIC_URL + "/" +id+"/")
      .then(res => res.data)
   }
 }

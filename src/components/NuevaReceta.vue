@@ -29,11 +29,11 @@
           </div>
           <div
             class="ingredientsList w-full mt-3 px-3"
-            v-if="recipeIngredientsList.length > 0"
+            v-if="newRecipe.ingredients.length > 0"
           >
             <div
               class="ingredientItem w-full grid my-3"
-              v-for="ingredient in recipeIngredientsList"
+              v-for="ingredient in newRecipe.ingredients"
               :key="ingredient.id"
             >
               <div
@@ -91,8 +91,10 @@
           label="Crear receta"
           style="margin-left: 50%"
           class="p-button-rounded p-button-success mt-3"
-          :disabled="newRecipe.name.length <= 0"
-          @click="createNewRecipe"
+          :disabled="
+            newRecipe.name.length <= 0 || newRecipe.ingredients.length == 0
+          "
+          @click="postNewRecipe"
         />
       </div>
     </div>
@@ -143,11 +145,14 @@ export default {
         id: 0,
         qty: 0,
       };
+      this.newIngredient = "";
     },
-    postNewRecipe(newRecipe) {
-      this.recipesService.createRecipe(newRecipe).then((res) => {
+    postNewRecipe() {
+      console.log(this.newRecipe);
+
+      this.recipesService.createRecipe(this.newRecipe).then((res) => {
         try {
-          console.log(res);
+          console.log("receta creada correctamente", res);
           this.resetData();
           this.$toast.add({
             severity: "success",
@@ -202,7 +207,8 @@ export default {
     },
     addIngredient() {
       if (this.newIngredient.id) {
-        this.recipeIngredientsList.push(this.newIngredient);
+        //   this.recipeIngredientsList.push(this.newIngredient);
+        this.newRecipe.ingredients.push(this.newIngredient);
       }
     },
   },
