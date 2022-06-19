@@ -111,7 +111,6 @@ export default {
         name: "",
         ingredients: [],
       },
-      recipeIngredientsList: [],
       tmpIngredient: {
         id: 0,
         qty: 0,
@@ -166,15 +165,7 @@ export default {
         }
       });
     },
-    async createNewRecipe() {
-      let newRecipe = await this.recipeIngredientsList.forEach((ingredient) => {
-        this.newRecipe.ingredients.push({
-          id: ingredient.id,
-          qty: ingredient.qty,
-        });
-      });
-      this.postNewRecipe(newRecipe);
-    },
+
     deleteIngredientFromRecipeIngredientsList(ingredientToDelete) {
       let indexToDelete =
         this.newRecipe.ingredients.indexOf(ingredientToDelete);

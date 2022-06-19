@@ -163,7 +163,7 @@
                           </Column>
                           <Column field="qty" header="Cantidad">
                             <template #body="slotProps">
-                              {{ slotProps.data.ingredient_qty }}
+                              {{ slotProps.data.ingrInRecipe_qty }}
                             </template></Column
                           >
                           <Column field="price" header="Precio">
@@ -261,8 +261,8 @@
           </div>
           <div class="col-4 flex justify-content-center align-items-center">
             <InputNumber
-              v-model="ingredient.ingredient_qty"
-              :placeholder="ingredient.ingredient_qty"
+              v-model="ingredient.ingrInRecipe_qty"
+              :placeholder="ingredient.ingrInRecipe_qty"
             ></InputNumber>
           </div>
           <div class="col-4 flex justify-content-center align-items-center">
@@ -430,7 +430,7 @@ export default {
               .editIngredientQty(
                 this.item.recipe_id,
                 ingredient.ingredient_id,
-                ingredient.ingredient_qty
+                ingredient.ingrInRecipe_qty
               )
               .then(() => {
                 this.$toast.add({
