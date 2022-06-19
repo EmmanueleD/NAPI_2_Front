@@ -403,7 +403,6 @@ export default {
           this.recipesService
             .editRecipeName({ name: this.newName }, this.item.recipe_id)
             .then((res) => {
-              console.log("edit recipe name", res);
               this.dataviewValue.splice(0);
               this.buildRecipeList();
 
@@ -434,8 +433,6 @@ export default {
                 ingredient.ingredient_qty
               )
               .then((res) => {
-                console.log("edit ingr. QTY", res);
-
                 this.$toast.add({
                   severity: "success",
                   summary: "Successful",
@@ -484,7 +481,6 @@ export default {
               this.newIngredient.qty
             )
             .then((res) => {
-              console.log("add NEW  ingr", res);
               this.$toast.add({
                 severity: "success",
                 summary: "Successful",
@@ -515,7 +511,6 @@ export default {
     deleteRecipe(id) {
       try {
         this.recipesService.deleteRecipe(id).then((res) => {
-          console.log(res);
           this.$toast.add({
             severity: "success",
             summary: "Successful",
@@ -556,9 +551,7 @@ export default {
         this.recipesService
           .deleteIngredient(recipe_id, ingredient_id)
           .then((res) => {
-            console.log(res);
             // this.recipesService.getRecipeById(recipe_id).then((res) => {
-            //   console.log(res);
             //   //   this.item.ingredients.splice(0);
             //   //   this.item.ingredients = res.ingredients;
             // });
@@ -593,7 +586,6 @@ export default {
       this.deleteIngredientDialog = true;
     },
     newIngredientSelected(event) {
-      console.log(event);
       setTimeout(() => {
         if (!event.query.trim().length) {
           this.filteredIngredients = [...this.ingredientsList];
@@ -611,7 +603,6 @@ export default {
 
     buildRecipeList() {
       this.recipesService.getRecipesWIngredients().then((data) => {
-        console.log("RES RES RES ", data);
         const recipes = {};
 
         // Create an object in {recipes} for each recipe
@@ -649,8 +640,6 @@ export default {
           });
         }
       });
-
-      console.log("this.dataviewValue", this.dataviewValue);
     },
     formatCurrency(value) {
       if (value)
@@ -662,7 +651,6 @@ export default {
     },
     editRecipe(item) {
       this.item = { ...item };
-      console.log(this.item);
       this.newName = item.recipe_name;
       this.editDialog = true;
       this.ingredientsService.getAllIngredients().then((res) => {
