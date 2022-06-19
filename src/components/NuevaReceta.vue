@@ -15,7 +15,7 @@
             />
           </div>
 
-          <!-- <h5>Ingredientes</h5>
+          <h5>Ingredientes</h5>
 
           <div class="p-inputgroup">
             <AutoComplete
@@ -81,17 +81,10 @@
                 </div>
               </div>
             </div>
-          </div> -->
+          </div>
         </div>
+
         <Button
-          icon="pi pi-plus"
-          label="Crear receta"
-          style="margin-left: 50%"
-          class="p-button-rounded p-button-success mt-3"
-          :disabled="newRecipe.name.length <= 0"
-          @click="postNewRecipe"
-        />
-        <!-- <Button
           icon="pi pi-plus"
           label="Crear receta"
           style="margin-left: 50%"
@@ -100,7 +93,7 @@
             newRecipe.name.length <= 0 || newRecipe.ingredients.length == 0
           "
           @click="postNewRecipe"
-        /> -->
+        />
       </div>
     </div>
   </div>
@@ -145,7 +138,6 @@ export default {
         name: "",
         ingredients: [],
       };
-      this.recipeIngredientsList.splice(0);
       this.tmpIngredient = {
         id: 0,
         qty: 0,
@@ -187,11 +179,12 @@ export default {
       this.postNewRecipe(newRecipe);
     },
     deleteIngredientFromRecipeIngredientsList(ingredientToDelete) {
+      console.log(ingredientToDelete);
       let indexToDelete =
-        this.recipeIngredientsList.indexOf(ingredientToDelete);
+        this.newRecipe.ingredients.indexOf(ingredientToDelete);
 
       if (indexToDelete > -1) {
-        this.recipeIngredientsList.splice(indexToDelete, 1);
+        this.newRecipe.ingredients.splice(indexToDelete, 1);
       }
     },
     newIngredientSelected(event) {
@@ -212,8 +205,7 @@ export default {
     },
     addIngredient() {
       if (this.newIngredient.id) {
-        //   this.recipeIngredientsList.push(this.newIngredient);
-        this.newRecipe.ingredients.push(this.newIngredient);
+        this.newRecipe.ingredients.unshift(this.newIngredient);
       }
     },
   },

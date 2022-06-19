@@ -51,14 +51,14 @@
                 /> -->
                 <div class="flex-1 text-left">
                   <div class="font-bold text-2xl">
-                    {{ slotProps.data.name_recipe }}
+                    {{ slotProps.data.recipe_name }}
                   </div>
                   <div>
                     <Chip
                       class="mr-2 mt-3"
                       v-for="item in slotProps.data.ingredients"
-                      :key="item.ID_ingredient"
-                      :label="item.NAME_ingredient"
+                      :key="item.ingredient_id"
+                      :label="item.ingredient_name"
                     ></Chip>
                   </div>
                   <!-- <div class="mb-3">{{ slotProps.data.description }}</div> -->
@@ -143,7 +143,7 @@
                     class="w-9 shadow-2 my-3 mx-0"
                   /> -->
                   <div class="text-2xl font-bold">
-                    {{ slotProps.data.name_recipe }}
+                    {{ slotProps.data.recipe_name }}
                   </div>
                   <div class="my-3">
                     <Accordion>
@@ -158,17 +158,17 @@
                         >
                           <Column field="ingredientName" header="Ingrediente">
                             <template #body="slotProps">
-                              {{ slotProps.data.NAME_ingredient }}
+                              {{ slotProps.data.ingredient_name }}
                             </template>
                           </Column>
                           <Column field="qty" header="Cantidad">
                             <template #body="slotProps">
-                              {{ slotProps.data.QTY_ingredient }}
+                              {{ slotProps.data.ingredient_qty }}
                             </template></Column
                           >
                           <Column field="price" header="Precio">
                             <template #body="slotProps">
-                              {{ slotProps.data.price_ingredient.toFixed(2) }}
+                              {{ slotProps.data.ingrInRecipe_price.toFixed(2) }}
                             </template>
                           </Column>
                         </DataTable>
@@ -216,7 +216,7 @@
         <div class="grid">
           <div class="mr-3">
             <InputText
-              :placeholder="item.name_recipe"
+              :placeholder="item.recipe_name"
               v-model="newName"
             ></InputText>
           </div>
@@ -231,11 +231,10 @@
 
         <h5>Ingredientes</h5>
         <div class="my-3">
-          <h6>Agrega un ingrediente</h6>
           <div class="grid">
             <div class="col-8">
               <AutoComplete
-                placeholder="Busca un ingrediente..."
+                placeholder="Agrega un ingrediente..."
                 v-model="newIngredient"
                 :suggestions="filteredIngredients"
                 @complete="newIngredientSelected($event)"
@@ -254,16 +253,16 @@
         </div>
         <div
           v-for="ingredient in item.ingredients"
-          :key="ingredient.ID_ingredient"
+          :key="ingredient.ingredient_id"
           class="grid px-3"
         >
           <div class="col-4 flex justify-content-start align-items-center">
-            {{ ingredient.NAME_ingredient }}
+            {{ ingredient.ingredient_name }}
           </div>
           <div class="col-4 flex justify-content-center align-items-center">
             <InputNumber
-              v-model="ingredient.QTY_ingredient"
-              :placeholder="ingredient.QTY_ingredient"
+              v-model="ingredient.ingredient_qty"
+              :placeholder="ingredient.ingredient_qty"
             ></InputNumber>
           </div>
           <div class="col-4 flex justify-content-center align-items-center">
@@ -307,7 +306,7 @@
       ><div class="confirmation-content">
         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
         <span v-if="recipe"
-          >Quieres eliminar <b>{{ recipe.name_recipe }}</b
+          >Quieres eliminar <b>{{ recipe.recipe_name }}</b
           >?</span
         >
       </div>
@@ -322,7 +321,7 @@
           label="Yes"
           icon="pi pi-check"
           class="p-button-text"
-          @click="deleteRecipe(recipe.id_recipe)"
+          @click="deleteRecipe(recipe.recipe_id)"
         />
       </template>
     </Dialog>
@@ -336,7 +335,7 @@
       <div class="confirmation-content">
         <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
         <span v-if="ingredient"
-          >Quieres eliminar <b>{{ ingredient.NAME_ingredient }}</b
+          >Quieres eliminar <b>{{ ingredient.ingredient_name }}</b
           >?</span
         >
       </div>
@@ -351,7 +350,7 @@
           label="Yes"
           icon="pi pi-check"
           class="p-button-text"
-          @click="deleteIngredient(item.id_recipe, ingredient.ID_ingredient)"
+          @click="deleteIngredient(item.recipe_id, ingredient.ingredient_id)"
         />
       </template>
     </Dialog>
@@ -402,9 +401,12 @@ export default {
         //change recipe name
         try {
           this.recipesService
-            .editRecipeName({ name: this.newName }, this.item.id_recipe)
+            .editRecipeName({ name: this.newName }, this.item.recipe_id)
             .then((res) => {
               console.log("edit recipe name", res);
+              this.dataviewValue.splice(0);
+              this.buildRecipeList();
+
               this.$toast.add({
                 severity: "success",
                 summary: "Successful",
@@ -427,12 +429,13 @@ export default {
           try {
             this.recipesService
               .editIngredientQty(
-                this.item.id_recipe,
-                ingredient.ID_ingredient,
-                ingredient.QTY_ingredient
+                this.item.recipe_id,
+                ingredient.ingredient_id,
+                ingredient.ingredient_qty
               )
               .then((res) => {
                 console.log("edit ingr. QTY", res);
+
                 this.$toast.add({
                   severity: "success",
                   summary: "Successful",
@@ -465,18 +468,18 @@ export default {
     },
     addIngredient() {
       if (this.newIngredient.id) {
-        this.item.ingredients.push({
-          ID_ingredient: this.newIngredient.id,
-          ID_recipe: this.item.id_recipe,
-          QTY_ingredient: this.newIngredient.qty,
-          price_ingredient: this.newIngredient.price,
-          NAME_ingredient: this.newIngredient.name,
+        this.item.ingredients.unshift({
+          ingredient_id: this.newIngredient.id,
+          recipe_id: this.item.recipe_id,
+          ingredient_qty: this.newIngredient.qty,
+          ingrInRecipe_price: this.newIngredient.price,
+          ingredient_name: this.newIngredient.name,
         });
 
         try {
           this.recipesService
             .addIngredient(
-              this.item.id_recipe,
+              this.item.recipe_id,
               this.newIngredient.id,
               this.newIngredient.qty
             )
@@ -520,7 +523,7 @@ export default {
             life: 3000,
           });
           let indexToDelete = this.dataviewValue.findIndex(
-            (c) => c.id_recipe == id
+            (c) => c.recipe_id == id
           );
           if (indexToDelete > -1) {
             this.dataviewValue.splice(indexToDelete, 1);
@@ -548,20 +551,20 @@ export default {
       this.recipe = { ...recipe };
       this.deleteRecipeDialog = true;
     },
-    deleteIngredient(id_recipe, ID_ingredient) {
+    deleteIngredient(recipe_id, ingredient_id) {
       try {
         this.recipesService
-          .deleteIngredient(id_recipe, ID_ingredient)
+          .deleteIngredient(recipe_id, ingredient_id)
           .then((res) => {
             console.log(res);
-            // this.recipesService.getRecipeById(id_recipe).then((res) => {
+            // this.recipesService.getRecipeById(recipe_id).then((res) => {
             //   console.log(res);
             //   //   this.item.ingredients.splice(0);
             //   //   this.item.ingredients = res.ingredients;
             // });
 
             let indexToDelete = this.item.ingredients.findIndex(
-              (c) => c.ID_ingredient == ID_ingredient
+              (c) => c.ingredient_id == ingredient_id
             );
             if (indexToDelete > -1) {
               this.item.ingredients.splice(indexToDelete, 1);
@@ -614,23 +617,23 @@ export default {
         // Create an object in {recipes} for each recipe
         data.forEach((ingredient) => {
           if (Object.keys(recipes).length === 0) {
-            recipes[ingredient.ID_recipe] = {
-              id_recipe: ingredient.ID_recipe,
-              name_recipe: ingredient.NAME_recipe,
+            recipes[ingredient.recipe_id] = {
+              recipe_id: ingredient.recipe_id,
+              recipe_name: ingredient.recipe_name,
               ingredients: [],
             };
-            recipes[ingredient.ID_recipe].ingredients.push(ingredient);
+            recipes[ingredient.recipe_id].ingredients.push(ingredient);
           } else if (
-            Object.keys(recipes).includes(ingredient.ID_recipe.toString())
+            Object.keys(recipes).includes(ingredient.recipe_id.toString())
           ) {
-            recipes[ingredient.ID_recipe].ingredients.push(ingredient);
+            recipes[ingredient.recipe_id].ingredients.push(ingredient);
           } else {
-            recipes[ingredient.ID_recipe] = {
-              id_recipe: ingredient.ID_recipe,
-              name_recipe: ingredient.NAME_recipe,
+            recipes[ingredient.recipe_id] = {
+              recipe_id: ingredient.recipe_id,
+              recipe_name: ingredient.recipe_name,
               ingredients: [],
             };
-            recipes[ingredient.ID_recipe].ingredients.push(ingredient);
+            recipes[ingredient.recipe_id].ingredients.push(ingredient);
           }
         });
 
@@ -641,7 +644,7 @@ export default {
           this.dataviewValue.forEach((recipe) => {
             recipe.price = 0;
             recipe.ingredients.forEach((ingredient) => {
-              recipe.price += ingredient.price_ingredient;
+              recipe.price += ingredient.ingrInRecipe_price;
             });
           });
         }
@@ -660,7 +663,7 @@ export default {
     editRecipe(item) {
       this.item = { ...item };
       console.log(this.item);
-      this.newName = item.name_recipe;
+      this.newName = item.recipe_name;
       this.editDialog = true;
       this.ingredientsService.getAllIngredients().then((res) => {
         this.ingredientsList = res;
@@ -677,7 +680,7 @@ export default {
 
       this.dataviewValue.forEach((element) => {
         if (
-          element.name_recipe
+          element.recipe_name
             .toLowerCase()
             .includes(this.inputFilter.toLowerCase())
           // ||
