@@ -402,7 +402,7 @@ export default {
         try {
           this.recipesService
             .editRecipeName({ name: this.newName }, this.item.recipe_id)
-            .then((res) => {
+            .then(() => {
               this.dataviewValue.splice(0);
               this.buildRecipeList();
 
@@ -432,7 +432,7 @@ export default {
                 ingredient.ingredient_id,
                 ingredient.ingredient_qty
               )
-              .then((res) => {
+              .then(() => {
                 this.$toast.add({
                   severity: "success",
                   summary: "Successful",
@@ -480,7 +480,7 @@ export default {
               this.newIngredient.id,
               this.newIngredient.qty
             )
-            .then((res) => {
+            .then(() => {
               this.$toast.add({
                 severity: "success",
                 summary: "Successful",
@@ -510,7 +510,7 @@ export default {
     },
     deleteRecipe(id) {
       try {
-        this.recipesService.deleteRecipe(id).then((res) => {
+        this.recipesService.deleteRecipe(id).then(() => {
           this.$toast.add({
             severity: "success",
             summary: "Successful",
@@ -550,7 +550,7 @@ export default {
       try {
         this.recipesService
           .deleteIngredient(recipe_id, ingredient_id)
-          .then((res) => {
+          .then(() => {
             // this.recipesService.getRecipeById(recipe_id).then((res) => {
             //   //   this.item.ingredients.splice(0);
             //   //   this.item.ingredients = res.ingredients;

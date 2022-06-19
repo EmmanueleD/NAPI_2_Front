@@ -65,18 +65,15 @@ export default {
     },
     addIngredient() {
       try {
-        this.ingredientsService
-          .newIngredient(this.newIngredient)
-          .then((res) => {
-            console.log(res);
-            this.resetData();
-            this.$toast.add({
-              severity: "success",
-              summary: "Successful",
-              detail: "Nuevo ingrediente guardado ",
-              life: 3000,
-            });
+        this.ingredientsService.newIngredient(this.newIngredient).then(() => {
+          this.resetData();
+          this.$toast.add({
+            severity: "success",
+            summary: "Successful",
+            detail: "Nuevo ingrediente guardado ",
+            life: 3000,
           });
+        });
       } catch {
         this.resetData();
         this.$toast.add({

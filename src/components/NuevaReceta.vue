@@ -145,11 +145,8 @@ export default {
       this.newIngredient = "";
     },
     postNewRecipe() {
-      console.log(this.newRecipe);
-
-      this.recipesService.createRecipe(this.newRecipe).then((res) => {
+      this.recipesService.createRecipe(this.newRecipe).then(() => {
         try {
-          console.log("receta creada correctamente", res);
           this.resetData();
           this.$toast.add({
             severity: "success",
@@ -179,7 +176,6 @@ export default {
       this.postNewRecipe(newRecipe);
     },
     deleteIngredientFromRecipeIngredientsList(ingredientToDelete) {
-      console.log(ingredientToDelete);
       let indexToDelete =
         this.newRecipe.ingredients.indexOf(ingredientToDelete);
 
@@ -188,7 +184,6 @@ export default {
       }
     },
     newIngredientSelected(event) {
-      console.log(event);
       setTimeout(() => {
         if (!event.query.trim().length) {
           this.filteredIngredients = [...this.ingredientsList];
