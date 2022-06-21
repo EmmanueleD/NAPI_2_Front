@@ -57,6 +57,9 @@
                 "
               >
                 <InputNumber
+                  mode="decimal"
+                  :minFractionDigits="2"
+                  :maxFractionDigits="5"
                   v-model="ingredient.qty"
                   :placeholder="'cantidad en la receta...'"
                 ></InputNumber>
